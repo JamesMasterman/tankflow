@@ -1,8 +1,9 @@
 #ifndef FLOW_METER
 #define FLOW_METER
 
-const byte SENSOR_INTERUPT  = 0;  // 0 = digital pin 2
-const byte SENSOR_PIN       = 2;
+#include <stdint.h>
+
+#define SENSOR_PIN A1
 
 
 class FlowMeter
@@ -16,12 +17,12 @@ public:
 public:
     float Read();
     float CurrentRate();
-    float TotalVolume();
+    unsigned long TotalVolume();
     void  PulseCounter();
 
 
 private:
-    volatile byte mPulseCount;
+    volatile uint8_t mPulseCount;
     float mFlowRate;
     unsigned long mTotalLitres;
     unsigned long mLastTime;

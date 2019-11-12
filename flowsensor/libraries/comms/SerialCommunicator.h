@@ -1,12 +1,11 @@
 #pragma once
-#include "application.h"
 #include "FlowPacket.h"
-#include "../RadioHead/RH_RF95.h"
+#include "RH_RF95.h"
 
 class SerialCommunicator
 {
 public:
-  SerialCommunicator(RH_RF95& rf95);
+  SerialCommunicator(RH_RF95* rf95);
   ~SerialCommunicator();
 
 
@@ -36,7 +35,7 @@ private:
 
   FlowPacket packet;
 
-  RH_RF95& mRF95;
+  RH_RF95* mRF95;
 
 
 };

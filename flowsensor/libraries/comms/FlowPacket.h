@@ -1,4 +1,5 @@
 #pragma once
+#include <stdint.h>
 
 const uint8_t DATA_BUFFER_SIZE = 56;
 
@@ -39,4 +40,4 @@ typedef struct FlowPacket_t{
    * data within packet (formatted json string)
    */
   char data[DATA_BUFFER_SIZE];
-}  WeatherPacket;
+}  FlowPacket;

@@ -2,8 +2,8 @@
 #define FLOW_SENSOR_SERVER
 
 #include <SPI.h>
-#include "../RadioHead/RH_RF95.h"
-#include "../comms/SerialCommunicator.h"
+#include "RH_RF95.h"
+#include "SerialCommunicator.h"
 
 class FlowSensorServer
 {
@@ -15,13 +15,13 @@ public:
 public:
     void Start();
     void Send(FlowPacket& packet);
-    FlowPacket Recv();
+    bool Recv(FlowPacket& packet);
 
 private:
     // We need to provide the RFM95 module's chip select and interrupt pins to the 
     // rf95 instance below.On the SparkFun ProRF those pins are 12 and 6 respectively.
-    RH_RF95 mRF95(12, 6);
-    SerialCommunicator mComms;
+    RH_RF95* mRF95;
+    SerialCommunicator* mComms;
 };
 
 #endif

@@ -1,6 +1,4 @@
-#include <SPI.h>
-#include <../RadioHead/RH_RF95.h>
-#include "../comms/SerialCommunicator.h"
+
 #include "flowsensorserver.h"
 
 // The broadcast frequency is set to 921.2, but the SADM21 ProRf operates
@@ -14,8 +12,7 @@ const int POWER = 14;
 
 FlowSensorServer::FlowSensorServer()
 {
-
-    
+    mRF95 = new RH_RF95(12, 6);
 }
 
 FlowSensorServer::~FlowSensorServer()
@@ -27,7 +24,7 @@ void FlowSensorServer::Start()
 {
     pinMode(LED, OUTPUT);
     //Initialize the Radio. 
-    if (!mRF95.init())
+    if (!mRF95->init())
     {
         SerialUSB.println("Radio Init Failed - Freezing");
         digitalWrite(LED, HIGH);
@@ -43,13 +40,13 @@ void FlowSensorServer::Start()
         delay(500);
     }
 
-    mRF95.setFrequency(FREQUENCY); 
+    mRF95->setFrequency(FREQUENCY); 
 
     // The default transmitter power is 13dBm, using PA_BOOST.
     // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then 
     // you can set transmitter powers from 5 to 23 dBm:
     // Transmitter power can range from 14-20dbm.
-    mRF95.setTxPower(POWER, false);
+    mRF95->setTxPower(POWER, false);
     mComms = new SerialCommunicator(mRF95);
 }
 
@@ -58,7 +55,7 @@ void FlowSensorServer::Send(FlowPacket& packet)
     mComms->send(packet);
 }
 
-bool FlowSensorServer::Recv(FloatPacket& packet)
+bool FlowSensorServer::Recv(FlowPacket& packet)
 {
     return mComms->recv(packet);
 }

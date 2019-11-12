@@ -1,9 +1,7 @@
 
 #include "SerialCommunicator.h"
 #include "checksum.h"
-#include "FlowPacket.h"
 #include "AckPacket.h"
-#include "../RadioHead/RH_RF95.h"
 
 #define START_PACKET 254
 
@@ -21,7 +19,7 @@
 const long TIMEOUT = 2000;
 const uint8_t MAX_RESENDS = 3;
 
-SerialCommunicator::SerialCommunicator(RH_RF95& rf95)
+SerialCommunicator::SerialCommunicator(RH_RF95* rf95)
 {
   mPacketID = 0;
   mState = INIT;
@@ -105,13 +103,13 @@ void SerialCommunicator::serialise(FlowPacket& packet, uint8_t* buffer){
 bool SerialCommunicator::recv(FlowPacket& packet)
 {
   bool success = false;
-  if (mRF95.waitAvailableTimeout(TIMEOUT))
+  if (mRF95->waitAvailableTimeout(TIMEOUT))
   {
       // Should be a message for us now
       uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
       uint8_t len = sizeof(buf);
 
-      if (mRF95.recv(buf, &len))
+      if (mRF95->recv(buf, &len))
       {
         int c;
         int index = 0;
@@ -144,11 +142,11 @@ bool SerialCommunicator::recv(FlowPacket& packet)
                 crc_accumulate((uint8_t)c, &mCalcCRC);
                 break;
               case GOT_ID:
-          packet.type = c;
-          mState = GOT_TYPE;
-          crc_accumulate((uint8_t)c, &mCalcCRC);
-          break;
-        case GOT_TYPE:
+                packet.type = c;
+                mState = GOT_TYPE;
+                crc_accumulate((uint8_t)c, &mCalcCRC);
+                break;
+              case GOT_TYPE:
                 packet.station = c;
                 mState = GOT_STATION;
                 crc_accumulate((uint8_t)c, &mCalcCRC);
@@ -176,11 +174,11 @@ bool SerialCommunicator::recv(FlowPacket& packet)
                 mState = DONE;
                 break;
             }
-            i++;
+            index++;
 
             if(mState == DONE){
               if(mRecvCRC == mCalcCRC){
-      sendAck(packet.packetID);
+                sendAck(packet.packetID);
                 success = true;
               }else{
                 success = false;
@@ -190,7 +188,6 @@ bool SerialCommunicator::recv(FlowPacket& packet)
             }
           }
         }
-      }
     }
 
     return success;
@@ -212,19 +209,19 @@ int SerialCommunicator::send(FlowPacket& packet){
   serialise(packet, sendBuffer);
 
    // Send a reply
-  mRF95.send(sendBuffer, buffLen);
-  mRF95.waitPacketSent();
+  mRF95->send(sendBuffer, buffLen);
+  mRF95->waitPacketSent();
    
   return packet.packetID;
 }
 
 int SerialCommunicator::recvAck(){
     int packetID = -1;
-    if(mRF95.available())
+    if(mRF95->available())
     {
       uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
       uint8_t len = sizeof(buf);
-      if (mRF95.recv(buf, &len))
+      if (mRF95->recv(buf, &len))
       {
         int c;
         int index = 0;
@@ -277,6 +274,6 @@ void SerialCommunicator::sendAck(uint8_t packetID)
   packet.init = START_PACKET;
   memcpy(buffer, &packet, packetSize);
 
-  mRF95.send(buffer, packetSize);
-  mRF95.waitPacketSent();
+  mRF95->send(buffer, packetSize);
+  mRF95->waitPacketSent();
 }

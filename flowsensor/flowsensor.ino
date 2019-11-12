@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "flowmeter.h"
 #include "flowsensorserver.h"
 
@@ -25,7 +26,7 @@ void loop()
     if(millis() - lastFlowReading > FLOW_READ_INTERVAL)
     {
        ReadFlow();
-       SendFlow();
+       //SendFlow();
        lastFlowReading = millis();
     }
 }
@@ -36,7 +37,7 @@ void SetupFlowMeter()
     // The Hall-effect sensor is connected to pin 2 which uses interrupt 0.
     // Configured to trigger on a FALLING state change (transition from HIGH
     // state to LOW state)
-    attachInterrupt(SENSOR_INTERUPT, PulseCounter, FALLING);
+    attachInterrupt(SENSOR_PIN, PulseCounter, FALLING);
 }
 
 void SetupServer()
@@ -54,9 +55,9 @@ void ReadFlow()
 {
     // Disable the interrupt while calculating flow rate and sending the value to
     // the host
-    detachInterrupt(sensorInterrupt);
+    
         
-    flow rate = flowMeter->Read();
+    float rate = flowMeter->Read();
 
     unsigned int frac;
     
@@ -74,12 +75,13 @@ void ReadFlow()
     SerialUSB.println("L"); 
 
     // Enable the interrupt again now that we've finished reading output
-    attachInterrupt(SENSOR_INTERUPT, PulseCounter, FALLING);
+    attachInterrupt(SENSOR_PIN, PulseCounter, FALLING);
+   
 }
 
 void SendFlow()
 {
     char result[30];
     sprintf(result, "rate=%0.2f,total=%0.2f", flowMeter->CurrentRate(), flowMeter->TotalVolume());
-    serial->send(STATION_ID, result, sizeof(result));
+  //  server->Send(STATION_ID, result, sizeof(result));
 }
