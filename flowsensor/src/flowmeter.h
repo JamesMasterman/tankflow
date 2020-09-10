@@ -5,7 +5,6 @@
 
 #define SENSOR_PIN A1
 
-
 class FlowMeter
 {
 
@@ -13,14 +12,12 @@ public:
     FlowMeter();
     ~FlowMeter();
 
-
 public:
     float Read();
     float CurrentRate();
     unsigned long TotalVolume();
     void  PulseCounter();
     void Reset();
-
 
 private:
     volatile long mLastPulseIRQ;

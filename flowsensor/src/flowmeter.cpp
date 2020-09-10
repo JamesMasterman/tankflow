@@ -31,15 +31,15 @@ float FlowMeter::Read()
     // this case) coming from the sensor.
     unsigned long interval = (millis() - mLastTime)/1000;
     mFlowRate = (mPulseCount/interval) * CALIBRATION_FACTOR;
-    mLastTime = millis();
 
     // Divide the flow rate in litres/minute by 60 to determine how many litres have
-    // passed through the sensor in this 1 second interval
+    // passed through the sensor in this interval
     unsigned long litres = (mFlowRate / 60.0) * interval;
     mTotalLitres += litres;
 
     // Reset the pulse counter so we can start incrementing again
     mPulseCount = 0;
+    mLastTime = millis();
     return mFlowRate;
 }
 
@@ -62,7 +62,7 @@ void FlowMeter::PulseCounter()
 {
   if (millis() - mLastPulseIRQ > 10) // Ignore switch-bounce glitches less than 10ms after the reed switch closes
   {
-    mLastPulseIRQ = millis(); //Grab the current time
+    mLastPulseIRQ = millis(); 
     mPulseCount++;
   }
 }

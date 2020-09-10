@@ -4,49 +4,29 @@
 
 const unsigned long ONE_MIN_MS = 60*1000;
 const unsigned long WATCHDOG_TIMEOUT_MS = 15*ONE_MIN_MS; //timeout for watchdog
-const unsigned long FLOW_READ_INTERVAL = 2000;
-const uint8_t STATION_ID = 1;
+const unsigned long LOOP_TIME_MS = 5000;
 
-//Output - 1Hz = 0.964LPM
 FlowMeter* flowMeter;
-unsigned long lastFlowReading;
-FlowLogger* thingsboardLogger;
+FlowLogger* logger;
 
 STARTUP(WiFi.selectAntenna(ANT_INTERNAL));
 ApplicationWatchdog wd(WATCHDOG_TIMEOUT_MS, System.reset);
+SYSTEM_THREAD(ENABLED);
 
 //Thingsboard settings
-const char THINGSBOARD_SERVER[] = "demo.thingsboard.io";
+const char THINGSBOARD_SERVER[] = "192.168.1.8";
 const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_version\":\"1.0\"}";
 #define THINGSBOARD_PORT        1883
 #define TOKEN           "hh0SXDHA3vBbcOhsMynl"
 
 void setup()
 {
-    Serial.begin(9600);
-    while(!Serial);
-    Serial.println("Flow Server!");
+    //Serial.begin(9600);
+    //while(!Serial);
+    //Serial.println("Flow Server!");
 
-    lastFlowReading = 0;
     SetupFlowMeter();
     SetupLogger();
-}
-
-void loop()
-{
-    //Tell the watchdog we are still alive
-    wd.checkin();
-
-    //Read the flow
-    ReadFlow();
-    PrintFlow();
-    SendFlow();
-
-    ResetIfMidnight();
-
-    //Wait till next read
-    delay(FLOW_READ_INTERVAL);
-    Particle.process();
 }
 
 void SetupFlowMeter()
@@ -60,8 +40,30 @@ void SetupFlowMeter()
 
 void SetupLogger()
 {
-    thingsboardLogger = new FlowLogger();
-    thingsboardLogger->Setup(THINGSBOARD_SERVER, THINGSBOARD_PORT, DeviceAttributes, TOKEN);
+    logger = new FlowLogger();
+    logger->Setup(THINGSBOARD_SERVER, THINGSBOARD_PORT, DeviceAttributes, TOKEN);
+}
+
+void loop()
+{
+    long start = millis();
+    //Tell the watchdog we are still alive
+    wd.checkin();
+
+    //Read the flow
+    ReadFlow();
+    //PrintFlow();
+    SendFlow();
+
+    ResetIfMidnight();
+
+    //Wait till next read
+    if(millis() - start > 0){
+      long diff = millis()- start;
+      delay(LOOP_TIME_MS - diff);
+    }else{
+      delay(LOOP_TIME_MS);
+    }
 }
 
 void PulseCounter()
@@ -71,9 +73,9 @@ void PulseCounter()
 
 void ReadFlow()
 {
-  detachInterrupt(SENSOR_PIN);
-  flowMeter->Read();
-  attachInterrupt(SENSOR_PIN, PulseCounter, FALLING);
+    detachInterrupt(SENSOR_PIN);
+    flowMeter->Read();
+    attachInterrupt(SENSOR_PIN, PulseCounter, FALLING);
 }
 
 void PrintFlow()
@@ -101,7 +103,7 @@ void SendFlow()
 {
     float rate = flowMeter->CurrentRate();
     unsigned long volume = flowMeter->TotalVolume();
-    thingsboardLogger->Send(rate, (double)volume);
+    logger->Send(rate, (double)volume);
 }
 
 bool sensorsReset = false;
