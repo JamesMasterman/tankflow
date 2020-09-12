@@ -17,13 +17,13 @@ SYSTEM_THREAD(ENABLED);
 const char THINGSBOARD_SERVER[] = "192.168.1.8";
 const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_version\":\"1.0\"}";
 #define THINGSBOARD_PORT        1883
-#define TOKEN           "hh0SXDHA3vBbcOhsMynl"
+#define TOKEN           "LluAjG0opsXDFjOTWcg1"
 
 void setup()
 {
-    //Serial.begin(9600);
-    //while(!Serial);
-    //Serial.println("Flow Server!");
+    Serial.begin(9600);
+    while(!Serial);
+    Serial.println("Flow Server!");
 
     SetupFlowMeter();
     SetupLogger();
@@ -52,7 +52,7 @@ void loop()
 
     //Read the flow
     ReadFlow();
-    //PrintFlow();
+    PrintFlow();
     SendFlow();
 
     ResetIfMidnight();
