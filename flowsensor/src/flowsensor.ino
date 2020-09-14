@@ -5,6 +5,8 @@
 const unsigned long ONE_MIN_MS = 60*1000;
 const unsigned long WATCHDOG_TIMEOUT_MS = 15*ONE_MIN_MS; //timeout for watchdog
 const unsigned long LOOP_TIME_MS = 5000;
+const unsigned long ZERO_SEND_INTERVAL = 60 * ONE_MIN_MS;
+const unsigned long NONZERO_SEND_INTERVAL = 30*1000;
 
 FlowMeter* flowMeter;
 FlowLogger* logger;
@@ -19,11 +21,13 @@ const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_vers
 #define THINGSBOARD_PORT        1883
 #define TOKEN           "LluAjG0opsXDFjOTWcg1"
 
+unsigned long lastSend = 0;
+
 void setup()
 {
-    Serial.begin(9600);
+    /*Serial.begin(9600);
     while(!Serial);
-    Serial.println("Flow Server!");
+    Serial.println("Flow Server!");*/
 
     SetupFlowMeter();
     SetupLogger();
@@ -46,24 +50,40 @@ void SetupLogger()
 
 void loop()
 {
-    long start = millis();
+    unsigned long start = millis();
+
     //Tell the watchdog we are still alive
     wd.checkin();
 
     //Read the flow
     ReadFlow();
-    PrintFlow();
-    SendFlow();
+    //PrintFlow();
+
+    if(ShouldSend())
+    {
+      SendFlow();
+      lastSend = millis();
+    }
 
     ResetIfMidnight();
 
     //Wait till next read
-    if(millis() - start > 0){
-      long diff = millis()- start;
-      delay(LOOP_TIME_MS - diff);
-    }else{
-      delay(LOOP_TIME_MS);
-    }
+    unsigned long readDiff = millis() - start;
+    delay(LOOP_TIME_MS - readDiff);
+}
+
+bool ShouldSend()
+{
+  unsigned long interval = millis() - lastSend;
+  float rate = flowMeter->CurrentRate();
+  if(rate > 0)
+  {
+    return interval > NONZERO_SEND_INTERVAL;
+  }
+  else
+  {
+    return interval > ZERO_SEND_INTERVAL;
+  }
 }
 
 void PulseCounter()
@@ -104,6 +124,7 @@ void SendFlow()
     float rate = flowMeter->CurrentRate();
     unsigned long volume = flowMeter->TotalVolume();
     logger->Send(rate, (double)volume);
+    lastSend = millis();
 }
 
 bool sensorsReset = false;
