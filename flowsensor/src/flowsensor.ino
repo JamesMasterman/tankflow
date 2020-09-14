@@ -121,10 +121,14 @@ void PrintFlow()
 
 void SendFlow()
 {
+  if(WiFi.ready())
+  {
     float rate = flowMeter->CurrentRate();
     unsigned long volume = flowMeter->TotalVolume();
     logger->Send(rate, (double)volume);
-    lastSend = millis();
+  }
+  
+  lastSend = millis();
 }
 
 bool sensorsReset = false;
