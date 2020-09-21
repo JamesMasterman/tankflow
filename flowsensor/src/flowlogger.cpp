@@ -24,7 +24,7 @@ void FlowLogger::Send(double rate, double volume)
 void FlowLogger::SendData(double rate, double volume)
 {
     // Prepare JSON payload
-    snprintf(m_mqttPub, sizeof(m_mqttPub), "{\"flowrate\":%.1f,\"totalvolume\":%.0f}", rate, volume);
+    snprintf(m_mqttPub, sizeof(m_mqttPub), "{\"flowrate\":%.1f,\"totalvolume\":%.2f}", rate, volume);
     Serial.println(m_mqttPub);
 
     // Send payload

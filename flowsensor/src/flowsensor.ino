@@ -4,9 +4,7 @@
 
 const unsigned long ONE_MIN_MS = 60*1000;
 const unsigned long WATCHDOG_TIMEOUT_MS = 15*ONE_MIN_MS; //timeout for watchdog
-const unsigned long LOOP_TIME_MS = 5000;
-const unsigned long ZERO_SEND_INTERVAL = 60 * ONE_MIN_MS;
-const unsigned long NONZERO_SEND_INTERVAL = 30*1000;
+const unsigned long LOOP_TIME_MS = 15000;
 
 FlowMeter* flowMeter;
 FlowLogger* logger;
@@ -22,6 +20,7 @@ const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_vers
 #define TOKEN           "LluAjG0opsXDFjOTWcg1"
 
 unsigned long lastSend = 0;
+double lastVolume = 0;
 
 void setup()
 {
@@ -31,6 +30,7 @@ void setup()
 
     SetupFlowMeter();
     SetupLogger();
+    SendFlow();
 }
 
 void SetupFlowMeter()
@@ -75,14 +75,15 @@ void loop()
 bool ShouldSend()
 {
   unsigned long interval = millis() - lastSend;
-  float rate = flowMeter->CurrentRate();
-  if(rate > 0)
+  float volume = flowMeter->TotalVolume();
+  if(volume > lastVolume)
   {
-    return interval > NONZERO_SEND_INTERVAL;
+    lastVolume = volume;
+    return true;
   }
   else
   {
-    return interval > ZERO_SEND_INTERVAL;
+    return false;
   }
 }
 
@@ -124,10 +125,10 @@ void SendFlow()
   if(WiFi.ready())
   {
     float rate = flowMeter->CurrentRate();
-    unsigned long volume = flowMeter->TotalVolume();
-    logger->Send(rate, (double)volume);
+    double volume = flowMeter->TotalVolume();
+    logger->Send(rate, volume);
   }
-  
+
   lastSend = millis();
 }
 
@@ -138,6 +139,8 @@ void ResetIfMidnight()
   if(Time.hour(Time.now()) == 0 && !sensorsReset)
   {
     flowMeter->Reset();
+    lastVolume = 0;
+    SendFlow();
     sensorsReset = true;
   }
 

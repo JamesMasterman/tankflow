@@ -15,7 +15,7 @@ public:
 public:
     float Read();
     float CurrentRate();
-    unsigned long TotalVolume();
+    double TotalVolume();
     void  PulseCounter();
     void Reset();
 
@@ -23,7 +23,7 @@ private:
     volatile long mLastPulseIRQ;
     volatile uint32_t mPulseCount;
     float mFlowRate;
-    unsigned long mTotalLitres;
+    double mTotalLitres;
     unsigned long mLastTime;
 
 };

@@ -4,7 +4,7 @@
 // The hall-effect flow sensor outputs approximately 4.5 pulses per second per
 // litre/minute of flow.
 //Output - 1Hz = 0.964LPM
-const float CALIBRATION_FACTOR = 0.964;
+const float CALIBRATION_FACTOR = 5.35;//0.964; //Empirical factor. 0.964 is manufacturer number
 
 FlowMeter::FlowMeter()
 {
@@ -30,11 +30,11 @@ float FlowMeter::Read()
     // based on the number of pulses per second per units of measure (litres/minute in
     // this case) coming from the sensor.
     unsigned long interval = (millis() - mLastTime)/1000;
-    mFlowRate = (mPulseCount/interval) * CALIBRATION_FACTOR;
+    mFlowRate = ((double)(mPulseCount/interval)) * CALIBRATION_FACTOR;
 
     // Divide the flow rate in litres/minute by 60 to determine how many litres have
     // passed through the sensor in this interval
-    unsigned long litres = (mFlowRate / 60.0) * interval;
+    double litres = (mFlowRate / 60.0) * (double)interval;
     mTotalLitres += litres;
 
     // Reset the pulse counter so we can start incrementing again
@@ -48,7 +48,7 @@ float FlowMeter::CurrentRate()
     return mFlowRate;
 }
 
-unsigned long FlowMeter::TotalVolume()
+double FlowMeter::TotalVolume()
 {
     return mTotalLitres;
 }
@@ -62,7 +62,7 @@ void FlowMeter::PulseCounter()
 {
   if (millis() - mLastPulseIRQ > 10) // Ignore switch-bounce glitches less than 10ms after the reed switch closes
   {
-    mLastPulseIRQ = millis(); 
+    mLastPulseIRQ = millis();
     mPulseCount++;
   }
 }
