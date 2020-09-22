@@ -27,7 +27,7 @@ void setup()
     /*Serial.begin(9600);
     while(!Serial);
     Serial.println("Flow Server!");*/
-
+    Time.zone(10.0); //Set the local timezome
     SetupFlowMeter();
     SetupLogger();
     SendFlow();
