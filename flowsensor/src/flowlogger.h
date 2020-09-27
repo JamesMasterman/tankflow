@@ -17,7 +17,7 @@ public:
   void Send(double rate, double volume);
 
 private:
-  void SendData(double rate, double volume);
+  bool SendData(double rate, double volume);
 };
 
 #endif

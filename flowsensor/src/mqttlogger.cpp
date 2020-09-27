@@ -61,6 +61,7 @@ bool MQTTLogger::ServerConnect()
        {
            Serial.println("serverConnect(): Connection failed, retry in 3 seconds");
        }
+       psClient->loop();
 
        delay(3000);
    }
