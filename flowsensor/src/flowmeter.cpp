@@ -1,10 +1,8 @@
 #include "flowmeter.h"
 #include<SPI.h>
 
-// The hall-effect flow sensor outputs approximately 4.5 pulses per second per
-// litre/minute of flow.
 //Output - 1Hz = 0.964LPM
-const float CALIBRATION_FACTOR = 5.35;//0.964; //Empirical factor. 0.964 is manufacturer number
+const float CALIBRATION_FACTOR = 5.2;//0.964; //Empirical factor. 0.964 is manufacturer number
 
 FlowMeter::FlowMeter()
 {
@@ -22,7 +20,7 @@ FlowMeter::~FlowMeter()
     detachInterrupt(SENSOR_PIN);
 }
 
-float FlowMeter::Read()
+void FlowMeter::Read()
 {
     // Because this loop may not complete in exactly 1 second intervals we calculate
     // the number of milliseconds that have passed since the last execution and use
@@ -30,7 +28,7 @@ float FlowMeter::Read()
     // based on the number of pulses per second per units of measure (litres/minute in
     // this case) coming from the sensor.
     unsigned long interval = (millis() - mLastTime)/1000;
-    mFlowRate = ((double)(mPulseCount/interval)) * CALIBRATION_FACTOR;
+    mFlowRate = (((double)mPulseCount/(double)interval)) * CALIBRATION_FACTOR;
 
     // Divide the flow rate in litres/minute by 60 to determine how many litres have
     // passed through the sensor in this interval
@@ -40,7 +38,6 @@ float FlowMeter::Read()
     // Reset the pulse counter so we can start incrementing again
     mPulseCount = 0;
     mLastTime = millis();
-    return mFlowRate;
 }
 
 float FlowMeter::CurrentRate()

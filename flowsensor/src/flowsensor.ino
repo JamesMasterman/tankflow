@@ -3,14 +3,13 @@
 #include "flowlogger.h"
 
 const unsigned long ONE_MIN_MS = 60*1000;
-const unsigned long WATCHDOG_TIMEOUT_MS = 15*ONE_MIN_MS; //timeout for watchdog
+const unsigned long WATCHDOG_TIMEOUT_MS = ONE_MIN_MS; //timeout for watchdog
 const unsigned long LOOP_TIME_MS = 15000;
 
 FlowMeter* flowMeter;
 FlowLogger* logger;
 
 STARTUP(WiFi.selectAntenna(ANT_INTERNAL));
-ApplicationWatchdog wd(WATCHDOG_TIMEOUT_MS, System.reset);
 SYSTEM_THREAD(ENABLED);
 
 //Thingsboard settings
@@ -19,18 +18,21 @@ const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_vers
 #define THINGSBOARD_PORT        1883
 #define TOKEN           "LluAjG0opsXDFjOTWcg1"
 
-unsigned long lastSend = 0;
+
 double lastVolume = 0;
+float lastFlow = 0;
 
 void setup()
 {
     /*Serial.begin(9600);
     while(!Serial);
     Serial.println("Flow Server!");*/
-    Time.zone(10.0); //Set the local timezome
     SetupFlowMeter();
     SetupLogger();
+    delay(5000);
     SendFlow();
+    delay(5000);
+    Time.zone(10.0); //Set the local timezome
 }
 
 void SetupFlowMeter()
@@ -52,9 +54,6 @@ void loop()
 {
     unsigned long start = millis();
 
-    //Tell the watchdog we are still alive
-    wd.checkin();
-
     //Read the flow
     ReadFlow();
     //PrintFlow();
@@ -62,7 +61,6 @@ void loop()
     if(ShouldSend())
     {
       SendFlow();
-      lastSend = millis();
     }
 
     ResetIfMidnight();
@@ -74,10 +72,13 @@ void loop()
 
 bool ShouldSend()
 {
-  unsigned long interval = millis() - lastSend;
-  float volume = flowMeter->TotalVolume();
-  if(volume > lastVolume)
+  const float MinFlow = 0.1;
+  logger->Heartbeat();
+  double volume = flowMeter->TotalVolume();
+  float flow = flowMeter->CurrentRate();
+  if(volume > lastVolume || (flow < MinFlow && lastFlow > MinFlow))
   {
+    lastFlow = flow;
     lastVolume = volume;
     return true;
   }
@@ -128,8 +129,6 @@ void SendFlow()
     double volume = flowMeter->TotalVolume();
     logger->Send(rate, volume);
   }
-
-  lastSend = millis();
 }
 
 bool sensorsReset = false;
@@ -138,10 +137,13 @@ void ResetIfMidnight()
   //Reset all the sensors at midnight
   if(Time.hour(Time.now()) == 0 && !sensorsReset)
   {
+    SendFlow();
+    detachInterrupt(SENSOR_PIN);
+    sensorsReset = true;
     flowMeter->Reset();
     lastVolume = 0;
-    SendFlow();
-    sensorsReset = true;
+    lastFlow = 0;
+    attachInterrupt(SENSOR_PIN, PulseCounter, FALLING);
   }
 
   //Clear the sensor reset flag in the next hour

@@ -13,7 +13,7 @@ public:
     ~FlowMeter();
 
 public:
-    float Read();
+    void Read();
     float CurrentRate();
     double TotalVolume();
     void  PulseCounter();
@@ -22,9 +22,9 @@ public:
 private:
     volatile long mLastPulseIRQ;
     volatile uint32_t mPulseCount;
-    float mFlowRate;
-    double mTotalLitres;
-    unsigned long mLastTime;
+    volatile float mFlowRate;
+    volatile double mTotalLitres;
+    volatile unsigned long mLastTime;
 
 };
 

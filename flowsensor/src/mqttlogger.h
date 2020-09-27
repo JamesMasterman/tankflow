@@ -16,6 +16,7 @@ public:
 
 public:
   void Setup(const char* server, int port, const char* attributes, const char* token);
+  void Heartbeat();
 
 protected:
   bool ServerConnect();
