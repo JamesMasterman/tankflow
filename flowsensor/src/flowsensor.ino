@@ -28,14 +28,11 @@ void setup()
     /*Serial.begin(9600);
     while(!Serial);
     Serial.println("Flow Server!");*/
-
     ConnectToCloud();
     SetupFlowMeter();
     SetupLogger();
     delay(5000);
     SendFlow();
-    delay(5000);
-
 }
 
 void ConnectToCloud()
@@ -104,7 +101,6 @@ void loop()
 bool ShouldSend()
 {
   const float MinFlow = 0.1;
-  logger->Heartbeat();
   double volume = flowMeter->TotalVolume();
   float flow = flowMeter->CurrentRate();
   if(volume > lastVolume || (flow < MinFlow && lastFlow > MinFlow))
@@ -154,12 +150,11 @@ void PrintFlow()
 
 void SendFlow()
 {
-  if(WiFi.ready())
-  {
-    float rate = flowMeter->CurrentRate();
-    double volume = flowMeter->TotalVolume();
-    logger->Send(rate, volume);
-  }
+  StartWifi();
+
+  float rate = flowMeter->CurrentRate();
+  double volume = flowMeter->TotalVolume();
+  logger->Send(rate, volume);
 }
 
 bool sensorsReset = false;
@@ -169,12 +164,10 @@ void ResetIfMidnight()
   if(Time.hour(Time.now()) == 0 && !sensorsReset)
   {
     SendFlow();
-    detachInterrupt(SENSOR_PIN);
     sensorsReset = true;
     flowMeter->Reset();
     lastVolume = 0;
     lastFlow = 0;
-    attachInterrupt(SENSOR_PIN, PulseCounter, FALLING);
   }
 
   //Clear the sensor reset flag in the next hour

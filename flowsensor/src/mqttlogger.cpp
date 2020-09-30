@@ -11,11 +11,6 @@ MQTTLogger::~MQTTLogger()
 
 }
 
-void MQTTLogger::Heartbeat()
-{
-  psClient->loop();
-}
-
 void MQTTLogger::Setup(const char* server, int port, const char* attributes, const char* token)
 {
    pinMode(LED, OUTPUT);
@@ -51,7 +46,7 @@ bool MQTTLogger::ServerConnect()
    {
        attempts++;
        Serial.println("serverConnect(): Attempting to connect to Thingsboard server");
-       if (psClient->connect("Photon", m_Token, NULL))                    // ClientID, User, PW
+       if (psClient->connect("Photon", m_Token, NULL))
        {
            Serial.println("serverConnect(): Connected");
            connected = true;

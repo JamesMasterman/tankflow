@@ -15,11 +15,9 @@ void FlowLogger::Send(double rate, double volume)
 {
     if(!SendData(rate, volume))
     {
-      psClient->loop();
       EnsureConnected();
       SendData(rate, volume);
     }
-    psClient->loop();
 }
 
 bool FlowLogger::SendData(double rate, double volume)
@@ -30,6 +28,7 @@ bool FlowLogger::SendData(double rate, double volume)
 
     // Send payload
     bool result = psClient->publish("v1/devices/me/telemetry", m_mqttPub);            // Topic, payload
+    result = psClient->loop() && result;
     BlinkLED();
     return result;
 }
