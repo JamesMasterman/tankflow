@@ -24,6 +24,7 @@ void MQTTLogger::Setup(const char* server, int port, const char* attributes, con
      snprintf(m_mqttPub, sizeof(m_mqttPub), "%s", attributes);
      psClient->publish("v1/devices/me/attributes", m_mqttPub);
      psClient->loop();
+     Serial.println("Sent attributes");
   }
 }
 

@@ -5,17 +5,17 @@
 const unsigned long ONE_MIN_MS = 60*1000;
 const unsigned long WATCHDOG_TIMEOUT_MS = ONE_MIN_MS; //timeout for watchdog
 const unsigned long LOOP_TIME_MS = 30000;
-const unsigned long WIFI_TIMEOUT_MS = 90*1000; //90 second timeout waiting for the wifi
 
 FlowMeter* flowMeter;
 FlowLogger* logger;
 
 STARTUP(WiFi.selectAntenna(ANT_INTERNAL));
-SYSTEM_MODE(SEMI_AUTOMATIC);
+SYSTEM_MODE(AUTOMATIC);
+SYSTEM_THREAD(ENABLED);
 
 //Thingsboard settings
 const char THINGSBOARD_SERVER[] = "192.168.1.8";
-const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_version\":\"1.0\"}";
+const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_version\":\"1.1\"}";
 #define THINGSBOARD_PORT        1883
 #define TOKEN           "LluAjG0opsXDFjOTWcg1"
 
@@ -28,39 +28,11 @@ void setup()
     /*Serial.begin(9600);
     while(!Serial);
     Serial.println("Flow Server!");*/
-    ConnectToCloud();
+    Time.zone(10.0); //Set the local timezome
     SetupFlowMeter();
     SetupLogger();
     delay(5000);
     SendFlow();
-}
-
-void ConnectToCloud()
-{
-  StartWifi();
-  Particle.connect();
-  if(waitFor(Particle.connected, WIFI_TIMEOUT_MS)){
-
-    Particle.process();
-    Time.zone(10.0); //Set the local timezome
-
-    //Make sure the system clock is updated
-    Particle.syncTime();
-    Particle.process();
-    waitUntil(Particle.syncTimeDone);
-    Particle.disconnect();
-  }
-}
-
-void StartWifi()
-{
-  //Sync the time
-  if(!WiFi.ready())
-  {
-     WiFi.on();
-     WiFi.connect();
-     waitFor(WiFi.ready, WIFI_TIMEOUT_MS);
-  }
 }
 
 void SetupFlowMeter()
@@ -150,8 +122,6 @@ void PrintFlow()
 
 void SendFlow()
 {
-  StartWifi();
-
   float rate = flowMeter->CurrentRate();
   double volume = flowMeter->TotalVolume();
   logger->Send(rate, volume);
