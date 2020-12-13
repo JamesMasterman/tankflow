@@ -4,7 +4,7 @@
 
 const unsigned long ONE_MIN_MS = 60*1000;
 const unsigned long WATCHDOG_TIMEOUT_MS = ONE_MIN_MS; //timeout for watchdog
-const unsigned long LOOP_TIME_MS = 30000;
+const unsigned long LOOP_TIME_MS = 15000;
 
 FlowMeter* flowMeter;
 FlowLogger* logger;
