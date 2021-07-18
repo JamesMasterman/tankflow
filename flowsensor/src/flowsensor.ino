@@ -4,7 +4,8 @@
 
 const unsigned long ONE_MIN_MS = 60*1000;
 const unsigned long WATCHDOG_TIMEOUT_MS = ONE_MIN_MS; //timeout for watchdog
-const unsigned long LOOP_TIME_MS = 15000;
+const unsigned long LOOP_TIME_MS = 10000;
+const unsigned long ONE_DAY = 24*60*60*1000;
 
 FlowMeter* flowMeter;
 FlowLogger* logger;
@@ -15,13 +16,14 @@ SYSTEM_THREAD(ENABLED);
 
 //Thingsboard settings
 const char THINGSBOARD_SERVER[] = "192.168.1.8";
-const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_version\":\"1.1\"}";
+const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_version\":\"1.2\"}";
 #define THINGSBOARD_PORT        1883
 #define TOKEN           "LluAjG0opsXDFjOTWcg1"
 
 
-double lastVolume = 0;
-float lastFlow = 0;
+double lastVolume = -100;
+float lastFlow = -100;
+unsigned long startTime = 0;
 
 void setup()
 {
@@ -32,7 +34,7 @@ void setup()
     SetupFlowMeter();
     SetupLogger();
     delay(5000);
-    SendFlow();
+    startTime = millis();
 }
 
 void SetupFlowMeter()
@@ -138,6 +140,9 @@ void ResetIfMidnight()
     flowMeter->Reset();
     lastVolume = 0;
     lastFlow = 0;
+    if((millis() - startTime) > ONE_DAY){
+      System.reset();
+    }
   }
 
   //Clear the sensor reset flag in the next hour
