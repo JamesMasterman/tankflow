@@ -1,2 +1,8 @@
 
 *.bin
+flowsensor/target
+*.dfu
+*.elf
+*.hex
+*.lst
+*.map

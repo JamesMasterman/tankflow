@@ -30,37 +30,39 @@ void MQTTLogger::Setup(const char* server, int port, const char* attributes, con
 
 bool MQTTLogger::EnsureConnected()
 {
-  bool connected = true;
   if (!psClient->connected())
   {
-      connected = ServerConnect();
+      ServerConnect();
   }
 
-  return connected;
+  return psClient->connected();
 }
 
 bool MQTTLogger::ServerConnect()
 {
-   int attempts = 0;
-   bool connected = false;
-   while (!psClient->connected() && attempts < 5)
+   pubsub.flush();
+   psClient->disconnect();
+   bool connected = psClient->connected();
+   while (!connected)
    {
-       attempts++;
-       Serial.println("serverConnect(): Attempting to connect to Thingsboard server");
        if (psClient->connect("Photon", m_Token, NULL))
        {
-           Serial.println("serverConnect(): Connected");
+           Particle.publish("Did connect");
+           //Serial.println("serverConnect(): Connected");
            connected = true;
+           psClient->loop();
            break;
        }
        else
        {
-           Serial.println("serverConnect(): Connection failed, retry in 3 seconds");
+           Particle.publish("Cannot connect");
+           //Serial.println("serverConnect(): Connection failed, retry in 3 seconds");
        }
-       psClient->loop();
 
-       delay(3000);
+       delay(5000);
    }
+
+   
    return connected;
  }
 

@@ -1,7 +1,24 @@
+/******************************************************/
+//       THIS IS A GENERATED FILE - DO NOT EDIT       //
+/******************************************************/
+
+#include "Particle.h"
+#line 1 "/Users/jamesmasterman/Documents/Development/Github/tankflow/flowsensor/src/flowsensor.ino"
 #include <stdint.h>
 #include "flowmeter.h"
 #include "flowlogger.h"
 
+void setup();
+void SetupFlowMeter();
+void SetupLogger();
+void loop();
+bool ShouldSend();
+void PulseCounter();
+void ReadFlow();
+void PrintFlow();
+void SendFlow();
+void ResetIfMidnight();
+#line 5 "/Users/jamesmasterman/Documents/Development/Github/tankflow/flowsensor/src/flowsensor.ino"
 const unsigned long ONE_MIN_MS = 60*1000;
 const unsigned long WATCHDOG_TIMEOUT_MS = ONE_MIN_MS; //timeout for watchdog
 const unsigned long LOOP_TIME_MS = 10000;
@@ -16,7 +33,7 @@ SYSTEM_THREAD(ENABLED);
 
 //Thingsboard settings
 const char THINGSBOARD_SERVER[] = "192.168.1.8";
-const char DeviceAttributes[] = "{\"firmware_version\":\"2.1.0\",\"software_version\":\"1.4\"}";
+const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_version\":\"1.3\"}";
 #define THINGSBOARD_PORT        1883
 #define TOKEN           "LluAjG0opsXDFjOTWcg1"
 
@@ -69,10 +86,7 @@ void loop()
 
     //Wait till next read
     unsigned long readDiff = millis() - start;
-    if(readDiff < LOOP_TIME_MS)
-    {
-      delay(LOOP_TIME_MS - readDiff);
-    }
+    delay(LOOP_TIME_MS - readDiff);
 }
 
 bool ShouldSend()
@@ -144,9 +158,8 @@ void ResetIfMidnight()
     lastVolume = 0;
     lastFlow = 0;
 
-    if((millis() - startTime) > ONE_DAY){
-      System.reset();
-    }
+    //reboot
+    System.reset();
   }
 
   //Clear the sensor reset flag in the next hour
